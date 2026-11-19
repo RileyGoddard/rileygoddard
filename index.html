@@ -26,6 +26,7 @@ ul{list-style:none}
 .back{display:flex;align-items:center;gap:5px;width:max-content;margin-top:17px}
 .arr{display:block;width:7px;height:7px;flex:none;overflow:visible}
 a{color:inherit}
+#homeBtn{pointer-events:none;cursor:default;user-select:text}
 
 .nav{position:absolute;right:calc(var(--vw)*4);top:32px;display:flex;gap:54px;align-items:flex-start}
 #app[data-view="home"] .nav{gap:36px}   /* tighter, equal gaps on the landing page to make room for the logo */
@@ -98,10 +99,10 @@ a.hl{text-decoration:none}
 #app:not([data-view="home"]) .preview{display:none}
 
 /* full screen */
-#full{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.78);color:#fff;display:flex;align-items:center;justify-content:center}
-#full .frame{width:min(86vw,140vh);margin:0}
+#full{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.78);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#full .frame{width:min(86vw,140vh);margin:0;cursor:inherit}
 #full .x{position:absolute;top:calc(32px + env(safe-area-inset-top,0px));right:4vw}
-#full .count{position:absolute;left:0;right:0;bottom:24px}
+#full .count{position:static;margin-top:12px;text-align:center}
 
 /* ===== phone / small screens: same design, reflowed to one column (as the reference does on iPhone) ===== */
 @media (max-width:900px){
@@ -160,7 +161,6 @@ a.hl{text-decoration:none}
   #full{background:#000;flex-direction:column}
   #full .frame{width:min(100%,140vh)}
   #full .x{top:calc(20px + env(safe-area-inset-top,0px));right:20px;padding:6px 0}
-  #full .count{bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 }
 @media (max-width:380px){.works button,.filters button{white-space:normal}.filters{min-width:0}}
 @media (prefers-reduced-motion:reduce){.ico,.body,.photo,.services{transition:none}}
@@ -472,7 +472,8 @@ function resetHome(){
   animateTo(() => { S.view = "home"; S.active.clear(); S.img = 0; apply(); });
   collapse(); setHash("");
 }
-$("#homeBtn").onclick = $("#back").onclick = resetHome;
+$("#back").onclick = resetHome;   // the name in the blurb stays underlined but is not a link
+$("#homeBtn").tabIndex = -1;
 $("#storyBtn").onclick = () => nav("story");   // stays on Story when clicked again; ↖ Back returns home
 
 function toggleFilter(f){ animateTo(() => { S.active.has(f) ? S.active.delete(f) : S.active.add(f); apply(); }); }
@@ -486,7 +487,12 @@ document.querySelectorAll(".body").forEach(el => el.addEventListener("scroll", (
 
 /* ---- placeholder slideshow + full screen ---- */
 function step(d){ S.img = (S.img + d + 6) % 6; apply(); $("#img").animate([{ opacity:.35 }, { opacity:1 }], { duration:260 }); }
-$("#img").onclick = $("#fullImg").onclick = () => step(1);
+/* left half of the image goes back, right half goes forward */
+[$("#img"), $("#fullImg")].forEach(el => {
+  const side = e => (e.detail === 0 ? 1 : (e.clientX - el.getBoundingClientRect().left) < el.getBoundingClientRect().width / 2 ? -1 : 1);
+  el.onclick = e => step(side(e));
+  el.onmousemove = e => { el.style.cursor = side(e) < 0 ? "w-resize" : "e-resize"; };
+});
 $("#fullBtn").onclick = () => { $("#full").hidden = false; apply(); $("#closeFull").focus(); };
 const closeFull = () => { if ($("#full").hidden) return; $("#full").hidden = true; apply(); };
 $("#closeFull").onclick = closeFull;
