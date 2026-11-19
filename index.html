@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Riley Goddard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap">
+<style>
+:root{--vw:1vw;--vh:1vh;--bg:#fff;--fg:#000;--mute:#9b9b9b;--red:#e0202b;--ph:#d3d3d3;--ease:cubic-bezier(.7,0,.2,1)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg)}
+body{font:400 14px/17px Inter,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button{all:unset;cursor:pointer;color:inherit;font:inherit}
+button:focus-visible,.body:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+ul{list-style:none}
+[hidden]{display:none!important}
+.mute{color:var(--mute)}
+/* only the underline is red; text colour never changes */
+.u,button.u:hover,a.hl:hover,.nav button:hover,.on>button,.hov>button,button[aria-pressed="true"],.story-btn[aria-current="page"]{
+  text-decoration:underline;text-decoration-color:var(--red);text-decoration-thickness:1px;text-underline-offset:2px}
+
+/* ===== 1440 x 900 artboard: nothing here may push the page past the viewport ===== */
+#app{position:relative;width:var(--appw,100vw);height:var(--apph,100vh);transform:scale(var(--k,1));transform-origin:0 0;overflow:hidden;padding-top:env(safe-area-inset-top,0px)}
+.bio{position:absolute;left:calc(var(--vw)*4);top:32px;width:var(--col,451px);max-width:calc(100% - calc(var(--vw)*8))}   /* same column width as the panels */
+.bio p{margin-bottom:17px}
+.back{display:flex;align-items:center;gap:5px;width:max-content;margin-top:17px}
+.arr{display:block;width:7px;height:7px;flex:none;overflow:visible}
+a{color:inherit}
+
+.nav{position:absolute;right:calc(var(--vw)*4);top:32px;display:flex;gap:54px;align-items:flex-start}
+#app[data-view="home"] .nav{gap:36px}   /* tighter, equal gaps on the landing page to make room for the logo */
+.logo{position:absolute;top:32px;left:0;width:300px;height:auto;display:block;pointer-events:none;user-select:none}
+#app:not([data-view="home"]) .logo{display:none}
+.group{display:flex;gap:4px;align-items:flex-start}
+.label{color:var(--mute);white-space:nowrap}
+.col{display:flex;flex-direction:column;align-items:flex-end}
+.works .tags{display:none;color:var(--mute)}
+#clear{visibility:hidden}#clear.show{visibility:visible}
+.full-btn{margin-top:17px}
+.story-btn{color:var(--mute)}
+/* black underline for the two links in About/Journey */
+.u.ub{text-decoration-color:currentColor}
+/* the page you are on is not clickable: the open project in Selected Works, and Story while on Story */
+#app[data-view="project"] .works li.cur>button,.story-btn[aria-current="page"]{pointer-events:none;cursor:default;user-select:none}
+a.hl{text-decoration:none}
+/* after a click the hover underline is held back until the pointer leaves, so a deselected filter visibly loses its underline */
+.filters button.nohov:hover{text-decoration:none}
+.filters button.nohov[aria-pressed="true"]{text-decoration:underline}
+
+.photo{position:absolute;right:calc(var(--vw)*4);top:54px;width:121px;height:172px;background:var(--ph);opacity:0;pointer-events:none;transition:opacity .35s}
+.services{position:absolute;right:calc(var(--vw)*4);bottom:24px;white-space:nowrap;text-align:right;opacity:0;pointer-events:none;transition:opacity .35s}
+
+/* collapsible info panels */
+/* panels sit one tile-gap (24px) to the right of the bio and share its width; --col is measured in JS */
+.panel{position:absolute;left:calc(calc(var(--vw)*4) + var(--col,451px) + 24px);width:var(--col,451px);top:32px;display:flex;flex-direction:column}
+.panel.story{bottom:65px}   /* stops above the one-line Services text */
+.panel.project{height:calc(var(--stage-top,calc(var(--vh)*35)) - 56px);--fade:24px}   /* ends 24px above the placeholder; text scrolls inside */
+.panel.story{--fade:56px}
+.head{display:flex;justify-content:center;align-items:center;gap:6px;width:100%;height:17px;flex:none}
+.ico{position:relative;display:block;flex:none;width:9px;height:9px;transition:transform .4s var(--ease)}
+.ico::before,.ico::after{content:"";position:absolute;left:0;top:4px;width:9px;height:1px;background:currentColor}
+.ico::after{transform:rotate(90deg)}
+.head[aria-expanded="true"] .ico{transform:rotate(45deg)}
+.body{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:0 0 var(--fade,56px) 0;
+  opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s;
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - var(--fade,56px)),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - var(--fade,56px)),transparent)}
+.body.open{opacity:1;visibility:visible}
+/* once scrolled, text also fades out under the header instead of being cut off mid-line */
+.body.scrolled{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14px,#000 calc(100% - var(--fade,56px)),transparent);mask-image:linear-gradient(to bottom,transparent 0,#000 14px,#000 calc(100% - var(--fade,56px)),transparent)}
+.body p,.blk{margin-bottom:17px}
+.rule{border:0;border-top:1px solid var(--red);margin:0 0 17px}
+
+/* thumbnails: 8 columns, bottom-anchored like the reference */
+.strip{position:absolute;left:calc(var(--vw)*4);right:calc(var(--vw)*4);bottom:24px;display:grid;grid-template-columns:repeat(8,1fr);gap:24px}
+.thumb{display:block;aspect-ratio:3/2;background-size:cover}
+.thumb.gone{display:none}
+/* hover preview: fixed, centred above the strip, same as the reference */
+.preview{position:absolute;left:50%;top:calc(var(--vh)*30);width:calc(var(--vw)*23.2);aspect-ratio:3/2;transform:translateX(-50%);pointer-events:none;opacity:0;visibility:hidden;background-size:cover}
+.preview.show{opacity:1;visibility:visible}
+.lnk{display:flex;align-items:center;gap:5px;width:max-content;max-width:100%}
+.lnk+.lnk{margin-top:17px}
+.ghost{position:fixed;z-index:5;pointer-events:none}
+
+/* project placeholder */
+.stage{position:absolute;left:52.6%;top:var(--stage-top,calc(var(--vh)*35));width:var(--stage-w,min(calc(var(--vh)*80),calc(var(--vw)*50)));transform:translateX(-50%);text-align:center}
+.frame{display:block;position:relative;overflow:hidden;width:100%;aspect-ratio:16/10;margin-bottom:12px}
+.vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.count{display:block}
+
+/* per-view visibility */
+#app[data-view="home"] :is(.back,.panel,.stage,.full-btn){display:none}
+#app[data-view="project"] :is(.panel.story,.filters,.strip){display:none}
+#app[data-view="project"] .works li:not(.cur){display:none}
+#app[data-view="project"] .works .tags{display:block}
+#app[data-view="story"] :is(.panel.project,.stage,.strip,.col,.filters,.full-btn){display:none}
+#app[data-view="story"] .photo,#app[data-view="story"] .services{opacity:1}
+#app:not([data-view="project"]) .stage{display:none}
+#app:not([data-view="home"]) .preview{display:none}
+
+/* full screen */
+#full{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.78);color:#fff;display:flex;align-items:center;justify-content:center}
+#full .frame{width:min(86vw,140vh);margin:0}
+#full .x{position:absolute;top:calc(32px + env(safe-area-inset-top,0px));right:4vw}
+#full .count{position:absolute;left:0;right:0;bottom:24px}
+
+/* ===== phone / small screens: same design, reflowed to one column (as the reference does on iPhone) ===== */
+@media (max-width:900px){
+  html,body{height:100%;overflow:hidden}
+  body{font-size:12px;line-height:15px}
+  #app{width:100%;height:100vh;height:100dvh;transform:none;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    display:flex;flex-direction:column;padding:calc(20px + env(safe-area-inset-top,0px)) calc(20px + env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) calc(20px + env(safe-area-inset-left,0px))}
+  :is(.bio,.nav,.panel,.photo,.services,.strip,.stage,.logo){position:static;transform:none;width:auto;max-width:none;min-width:0;height:auto;left:auto;right:auto;top:auto;bottom:auto}
+  .logo{display:block;width:72px;margin:0 auto 37px;order:-1}
+  #app:not([data-view="home"]) .logo{display:none}
+  .bio p{margin-bottom:15px}
+  .bio .back{margin-top:0}
+  #app[data-view="home"] .bio .back{display:none}
+  #app:not([data-view="home"]) .bio p{display:none}
+  #app:not([data-view="home"]) .bio .back{padding:6px 0;margin:-6px 0 11px}
+
+  /* Selected Works | Filter */
+  .nav,#app[data-view="home"] .nav{display:grid;grid-template-columns:64% 1fr;column-gap:0;align-items:start;flex:none}
+  .col{display:contents}
+  .col>.group{grid-column:1;grid-row:1}
+  .filters{grid-column:2;grid-row:1}
+  .story-btn{position:absolute;top:calc(20px + env(safe-area-inset-top,0px) + 40px);left:50%;transform:translateX(-50%);padding:4px 0}
+  .works button,.filters button,.story-btn,.head{padding-top:2px;padding-bottom:2px}
+  .group{flex-direction:column;gap:2px;align-items:flex-start}
+  .works button,.filters button{white-space:nowrap}
+  #app[data-view="story"] .story-btn{display:none}
+  .full-btn{grid-column:2;grid-row:1;justify-self:end;margin-top:0;white-space:nowrap}
+  #app[data-view="project"] .nav .story-btn,#app[data-view="story"] .nav{display:none}
+  #app[data-view="project"] .nav{margin-bottom:15px}
+  #app[data-view="project"] .nav .group{grid-column:1}
+  #app:not([data-view="home"]) .logo+.bio{margin-top:0}
+
+  /* panels sit inline and push content down (the page scrolls if needed) */
+  .panel{display:block;flex:none}
+  .panel.story,.panel.project{height:auto}
+  .head{justify-content:flex-start;width:max-content;height:auto;min-height:15px;gap:5px}
+  .body{display:none;overflow:visible;opacity:1;visibility:visible;-webkit-mask-image:none;mask-image:none;padding:11px 0 0}
+  .body.open{display:block}
+  .body p,.blk{margin-bottom:15px}
+  .panel.story{margin-top:0}
+  .photo{width:80px;height:114px;margin:0 0 15px auto;order:0}
+  #app[data-view="story"] .photo{display:block}
+  #app:not([data-view="story"]) .photo,#app:not([data-view="story"]) .services{display:none}
+  .services{white-space:normal;text-align:left;margin-top:24px;padding-bottom:4px}
+
+  /* project image + counter */
+  .stage{width:100%;margin-top:15px;text-align:center}
+  .frame{margin-bottom:8px}
+
+  /* 24 tiles: same 8-column grid, scaled down, anchored to the bottom */
+  .strip{margin-top:auto;padding-top:24px;grid-template-columns:repeat(4,1fr);gap:6px;flex:none}
+  .preview{display:none!important}
+  #app[data-view="story"] .strip,#app[data-view="project"] .strip{display:none}
+
+  /* full screen: black, like the reference */
+  #full{background:#000;flex-direction:column}
+  #full .frame{width:min(100%,140vh)}
+  #full .x{top:calc(20px + env(safe-area-inset-top,0px));right:20px;padding:6px 0}
+  #full .count{bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+}
+@media (max-width:380px){.works button,.filters button{white-space:normal}.filters{min-width:0}}
+@media (prefers-reduced-motion:reduce){.ico,.body,.photo,.services{transition:none}}
+</style>
+</head>
+<body>
+<div id="app" data-view="home">
+  <img class="logo" id="logo" src="logo.png" alt="Riley Goddard">
+  <section class="bio">
+    <p><button class="u" id="homeBtn">Riley Goddard</button> is a London-based content, culture and engagement strategist whose work focuses on integrated narrative, distribution and audience insights across campaign and community-based projects.</p>
+    <p>Riley strongly believes that creativity without strategy has nothing to say, and strategy without creativity says nothing at all. He holds a BA in Communication (Digital and Social Media; PR and Advertising) from UTS.</p>
+    <p>Contact:<br><a class="hl" href="mailto:rileyjasongoddard@gmail.com">rileyjasongoddard@gmail.com</a></p>
+    <button class="back" id="back"><svg class="arr" viewBox="0 0 7 7" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M6.5 6.5 0.5 0.5M0.5 4.8V0.5H4.8"/></svg>Back</button>
+  </section>
+
+  <nav class="nav" aria-label="Site">
+    <div class="col">
+      <div class="group"><span class="label">Selected Works:</span><ul class="works" id="works"></ul></div>
+      <button class="full-btn" id="fullBtn">View Full Screen [&nbsp;&nbsp;]</button>
+    </div>
+    <div class="group filters"><span class="label">Filter:</span>
+      <div><ul id="filters"></ul><button id="clear">× Clear</button></div></div>
+    <button class="story-btn" id="storyBtn">Story</button>
+  </nav>
+
+  <div class="photo" role="img" aria-label="Portrait placeholder"></div>
+
+  <section class="panel project" id="pProject">
+    <button class="head" id="projHead" aria-expanded="false" aria-controls="projBody">About Project<span class="ico"></span></button>
+    <div class="body" id="projBody" tabindex="0">
+      <p id="pDesc"></p>
+      <p id="pCollab"></p>
+      <p id="pLink"></p>
+    </div>
+  </section>
+
+  <section class="panel story" id="pStory">
+    <button class="head" id="storyHead" aria-expanded="false" aria-controls="storyBody">About/Journey<span class="ico"></span></button>
+    <div class="body" id="storyBody" tabindex="0">
+      <p>Riley is a content, culture and engagement strategist who loves to work on projects at the intersection of design, technology and people.</p>
+      <p>He knows where, when and how your brand should be in the world. Riley specialises in integrated narrative, distribution and data insights with a focus on how ideas move through culture to cultivate community. He develops audience-led content strategies that strengthen brands, drive engagement and has over three years of experiences working across fashion, tech and the public sector.</p>
+      <div class="blk"><span class="mute">Likes</span><br>Storytelling/Dogs/Strong opinions, lightly held/Beautiful interfaces/ Reality TV/Immersive experiences/Savoury foods/Bringing clarity to chaos</div>
+      <div class="blk"><span class="mute">Dislikes</span><br>McMansions/Volume as the only strategy/People who talk while chewing/Committing to a single path/AI UGC content/Slow walkers</div>
+      <div class="blk"><span class="mute">Skills</span><br>Marketing, Communications and Engagement<br>Strategic Thinking and Implementation<br>Leadership and Problem-solving<br>Events and Partnerships<br>Research and Insight<br>Design and Creative<br>Writing and Voice</div>
+      <hr class="rule">
+      <div class="blk"><span class="mute">Freelance Engagement Consultant | May 2026 - Present</span><br>Managed editorial production and client communication for cultural + commercial engagements, working with London-based photographer <a class="u ub" href="https://nathanieldunwell.com/" target="_blank" rel="noopener noreferrer">Nathaniel Dunwell</a>, and leadership consultant <a class="u ub" href="https://www.margotfaraci.com/" target="_blank" rel="noopener noreferrer">Margot Faraci</a>.</div>
+      <div class="blk"><span class="mute">Bayside Council Communications Officer | Nov 2024 - May 2026</span><br>Led integrated comms and engagement plans for community of 160,000+. Standout results include 22% YoY growth in Meta engagement, over 10M reached with highest performing Reel generating 200,500+ views over two-days.</div>
+      <div class="blk"><span class="mute">Haymarket Alliance Innovation Consultant | Mar 2024 - Nov 2024</span><br>Conducted primary research with local community stakeholders to shape revitalisation and placemaking strategies. Pitched business case for cultural festival, securing $200,000 grant with 350,000+ attendees over three-weeks.</div>
+      <div class="blk"><span class="mute">Edstart Marketing Communications Intern | Aug 2023 - Feb 2024</span><br>Coordinated marketing campaigns involving OOH and digital channels. Increased 5,000+ subscriber newsletter CTR from 14% to 26%. Compiled and analysed a dataset covering 2,935 for annual promo insights report.</div>
+      <hr class="rule">
+      <div class="blk"><span class="mute">Education | University of Technology Sydney | Feb 2021 - Nov 2024</span><br>Bachelor of Communication<br>Majors: Digital and Social Media; PR and Advertising<br>Bachelor of Creative Intelligence and Innovation<br>Exchange: Bocconi University, Milan (2024)</div>
+      <p>University undergraduate degree accredited by Communications and Public Relations Australia (CPRA), officially recognised by Australia’s peak professional industry body.</p>
+    </div>
+  </section>
+
+  <section class="stage" id="stage"><button class="frame" id="img"><video class="vid" id="imgVid" muted loop playsinline hidden></video></button><span class="count" id="count"></span></section>
+  <section class="strip" id="strip" aria-label="Work thumbnails"></section>
+  <div class="preview" id="preview" aria-hidden="true"><video class="vid" id="pvVid" muted playsinline hidden></video></div>
+  <p class="services">Services: Performance (Engaging) Creative/Content + Digital Strategy/Production/Events + Partnerships</p>
+</div>
+
+<div id="full" role="dialog" aria-modal="true" aria-label="Full screen" hidden>
+  <button class="x" id="closeFull">Close ×</button>
+  <button class="frame" id="fullImg"><video class="vid" id="fullVid" muted loop playsinline hidden></video></button>
+  <span class="count" id="fullCount"></span>
+</div>
+
+<script>
+/* ===== Your content. 4 projects x 6 images = 24 thumbnails. =====
+   Each `media` entry can be:
+     "url(my-image.jpg) center/cover"                         a photo (shows for LOOP_MS in the hover preview)
+     {bg:"url(my-image.jpg) center/cover", ms:1500}           a photo that stays longer in the hover preview
+     {video:"clip.mp4", poster:"url(still.jpg) center/cover"} a video: the preview waits for it to finish
+     {video:"clip.mp4", poster:"…", ms:4000}                  a video cut off after 4 seconds
+   Tiles show the photo, or the video's poster. */
+const bgOf = m => typeof m === "string" ? m : (m.bg || m.poster || "#d3d3d3");
+const FILTERS = ["Research + Design", "Community", "Production", "Socials"];
+const P = [
+ {id:"foreshore", name:"On the Foreshore", tags:["Socials","Community"],
+  desc:"Dennis Golding: On the Foreshore was a large-scale public art installation, delivered in partnership with the MCA. The project brought Indigenous cultural visual storytelling into the public realm. Riley led marketing communications through to launch, developing internal and external messaging, social content and documenting the public programme. The installation attracted 40,000+ visitors in eight-weeks and received an iMAGineE award nomination for it’s community engagement approach.",
+  collab:[{t:"Bayside Council",u:"https://www.bayside.nsw.gov.au/your-council/latest-news/dennis-golding-foreshore-exhibition-success"},{t:"MCA",u:"https://www.mca.com.au/media/dennis-golding-on-the-foreshore/"}],
+  links:[{t:"Dennis Golding: On the Foreshore",u:"https://www.mca.com.au/c3west/dennis-golding-on-the-foreshore/"}],
+  media:["linear-gradient(135deg,#d9822b,#4f7a4a)","#7aa35a","linear-gradient(120deg,#c9a23a,#e07b39,#3f8a73)","#e8e6df","linear-gradient(160deg,#3a7bd5,#bfe0ff)","linear-gradient(135deg,#9fb36a,#d96b2b)"]},
+ {id:"townie", name:"Townie", tags:["Research + Design","Community"],
+  desc:"Townie is a MVP subscription-based platform developed to connect foodies with independent businesses through a clean, more personalised experience. Translating the concept, Riley led UX/UI design and creative direction across product architecture, user journeys, feature development, interactive design, onboarding and visual identity. The result was a product experience designed to simplify quality discovery, support local communities and make finding the right spot for more accessible.",
+  collab:[],
+  links:[{t:"Townie Prototype Experience", u:""}],   // TODO: paste the prototype URL into u:""
+  media:["#2b47c8","#f2f0ea","linear-gradient(135deg,#2b47c8,#8aa0ff)","#d3d3d3","#222","linear-gradient(135deg,#555,#c4c4c4)"]},
+ {id:"names4ke", name:"Names4ke", tags:["Socials","Research + Design"],
+  desc:"Names4ke is a body of work exploring homes of great design and artistic significance. Content zooms-in on architecture, interiors and socio-cultural histories, published via TikTok the account has reach Xk+, with an engagement rate of X%. Riley shapes the editorial voice through original commentary, content curation and visual storytelling, creating a space for discovery and considered perspectives on the spaces we inhabit.",
+  collab:[],
+  links:[{t:"names4ke.online", u:"https://www.tiktok.com/@names4ke.online?_r=1&_t=ZS-9BLbIXdTDUr"}],
+  media:["#7dff7d","#3dff3d","#d3d3d3","#a8a3a3","#7dff7d","#d3d3d3"]},
+ {id:"otherworldly", name:"The Otherworldly", tags:["Production"],
+  desc:"Production for a sponsored editorial in Puss Puss Magazine - The Otherworldly - Issue 24. Riley translated the creative direction into a working production plan within a two-weeks turnaround, scouting locations, travel/schedule logistics, run sheets, budgets, post shoot deliverables and also features as ‘Teddy’. The project culminated into a digital and print cover story, 12-page editorial spread with social assets for the clients.",
+  collab:[{t:"Nathaniel Dunwell",u:"https://nathanieldunwell.com/"},{t:"Chl’ita",u:"https://www.chlita.com/"}],
+  links:[{t:"pusspussmagazine.com", u:"https://www.pusspussmagazine.com/product/issue-24/"}],
+  media:["#c9f5ec","#d3d3d3","linear-gradient(135deg,#222,#777)","#c9f5ec","#a8a3a3","#e8e6df"]}
+];
+
+const $ = s => document.querySelector(s), app = $("#app");
+const mk = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+const S = { view:"home", cur:0, img:0, active:new Set() };
+const thumbs = [];
+
+/* ---- build ---- */
+P.forEach((p, i) => {
+  const li = mk("li"), b = mk("button", "", p.name); b.onclick = () => nav("project", i, 0);
+  const t = mk("span", "tags"); li.append(b, t); p.li = li; p.tagEl = t; $("#works").append(li);
+  p.media.forEach((bg, j) => {
+    const th = mk("button", "thumb"); th.style.background = bgOf(bg); th.dataset.p = i; th.dataset.j = j;
+    th.setAttribute("aria-label", p.name + ", image " + (j + 1) + " of 6");
+    th.onclick = () => nav("project", i, j);
+    th.onmouseenter = th.onfocus = () => hover(i, th);
+    th.onmouseleave = th.onblur = () => hover(null);
+    thumbs.push(th); $("#strip").append(th);
+  });
+});
+FILTERS.forEach(f => {
+  const li = mk("li"), b = mk("button", "", f); b.dataset.f = f; b.setAttribute("aria-pressed", "false");
+  b.onclick = () => { toggleFilter(f); b.classList.add("nohov"); b.blur(); }; b.onmouseleave = () => b.classList.remove("nohov"); li.append(b); $("#filters").append(li);
+});
+$("#clear").onclick = () => { if (S.active.size) animateTo(() => { S.active.clear(); apply(); }); };
+
+const matches = p => !S.active.size || p.tags.some(t => S.active.has(t));   // any selected tag
+const shown = t => S.view === "home" && matches(P[+t.dataset.p]);
+
+/* header layout: logo sits midway between the bio text and the nav; panels take the bio's first-line width */
+const mobile = matchMedia("(max-width:900px)");
+function layoutHeader(){
+  const app = $("#app");
+  if (!mobile.matches) {   /* the 1440 x 900 design scales with the window: layout box = window / k, then scaled by k */
+    const k0 = Math.min(innerWidth / 1440, innerHeight / 900);
+    app.style.setProperty("--k", k0); app.style.setProperty("--appw", innerWidth / k0 + "px"); app.style.setProperty("--apph", innerHeight / k0 + "px");
+    app.style.setProperty("--vw", innerWidth / k0 / 100 + "px"); app.style.setProperty("--vh", innerHeight / k0 / 100 + "px");
+  }
+  const k = mobile.matches ? 1 : parseFloat(app.style.getPropertyValue("--k")) || 1;
+  if (mobile.matches) { ["--k", "--appw", "--apph", "--vw", "--vh"].forEach(v => app.style.removeProperty(v)); ["--col", "--stage-top", "--stage-w"].forEach(k => app.style.removeProperty(k)); ["left", "width", "top"].forEach(k => $("#logo").style.removeProperty(k)); return; }
+  /* ONE text-column width for the whole site: the bio, About Project and About/Journey all use it.
+     It is the width the longest role / education title needs to stay on a single line. */
+  let need = 0;
+  document.querySelectorAll("#storyBody .blk > .mute").forEach(t => {
+    if (!t.textContent.includes("|")) return;
+    const pr = mk("span", "mute", t.textContent); pr.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap"; app.append(pr);
+    need = Math.max(need, pr.getBoundingClientRect().width / k); pr.remove();
+  });
+  app.style.setProperty("--col", (need ? Math.ceil(need) + 2 : 451) + "px");
+  /* measure the bio AFTER the width change (it re-wraps) */
+  const rng = document.createRange(); let right = 0;
+  document.querySelectorAll(".bio p").forEach(p => { rng.selectNodeContents(p); [...rng.getClientRects()].forEach(r => { if (r.width > 1) right = Math.max(right, r.right / k); }); });
+  /* project placeholder: top lines up with the email line, bottom stays where it was (85% of the height), 16:10, clear of the email */
+  { const em0 = $(".bio a").getBoundingClientRect(), em = { top: em0.top / k, right: em0.right / k }, H = app.clientHeight, cx = app.clientWidth * .526;
+    const h = H * .85 - em.top, w = Math.min(h * 1.6, 2 * (cx - (em.right + 24)));
+    if (h > 160 && w > 200) { app.style.setProperty("--stage-top", em.top + "px"); app.style.setProperty("--stage-w", w + "px"); } }
+  if (S.view === "home") {
+    const navL = $(".nav").getBoundingClientRect().left / k;
+    const w = Math.round(($("#strip").clientWidth - 7 * 24) / 8 * .75 * 10) / 10;     // three-quarters of one thumbnail tile
+    const lg = $("#logo"); lg.style.width = w + "px"; lg.style.left = ((right + navL) / 2 - w / 2) + "px";
+    lg.style.top = (32 - 12) + "px";                                                  // sits 12px above the first line of text
+    // hover preview: top lines up with the email line, bottom sits 24px above the full 3-row tile grid (same as the gap between tiles)
+    const tileH = (($("#strip").clientWidth - 7 * 24) / 8) * 2 / 3, gridTop = app.clientHeight - 24 - (3 * tileH + 2 * 24);
+    const top = $(".bio a").getBoundingClientRect().top / k, h = gridTop - 24 - top, pv = $("#preview");
+    if (h > 120) Object.assign(pv.style, { top: top + "px", height: h + "px", width: h * 1.5 + "px" });
+  }
+}
+addEventListener("resize", layoutHeader);
+mobile.addEventListener && mobile.addEventListener("change", layoutHeader);
+$("#logo").addEventListener("load", layoutHeader);
+document.fonts && document.fonts.ready.then(layoutHeader);
+
+/* hovering a tile: large preview + red underline on its project name */
+/* load / play / stop a <video> that sits inside a frame */
+function setVid(v, src, play){
+  if (!src) { v.pause(); v.removeAttribute("src"); v.hidden = true; return; }
+  if (v.getAttribute("src") !== src) v.src = src;
+  v.hidden = false;
+  if (play && !reduce.matches) v.play().catch(() => {}); else v.pause();
+}
+
+let loop = null;
+const LOOP_MS = 700;        // default time a photo stays in the hover preview
+const VIDEO_MAX_MS = 20000; // safety: a video that never ends or never loads moves on after this
+function hover(i, th){
+  const pv = $("#preview"), vid = $("#pvVid");
+  clearTimeout(loop); loop = null; vid.onended = vid.onerror = null;
+  if (i == null || S.view !== "home") {
+    pv.classList.remove("show"); setVid(vid, null); P.forEach(q => q.li.classList.remove("hov")); return;
+  }
+  P.forEach((q, k) => q.li.classList.toggle("hov", k === i));
+  pv.classList.add("show");
+  const items = P[i].media; let j = +th.dataset.j;   // start on the hovered tile, then run through the project's six
+  (function run(){
+    const it = items[j], next = () => { clearTimeout(loop); vid.onended = vid.onerror = null; j = (j + 1) % items.length; run(); };
+    pv.style.background = bgOf(it);
+    setVid(vid, it.video, true);
+    if (reduce.matches) return;
+    if (it.video) {                                 // wait for the clip to finish (or its own ms), never forever
+      vid.onended = next; vid.onerror = () => { loop = setTimeout(next, LOOP_MS); };
+      loop = setTimeout(next, it.ms || VIDEO_MAX_MS);
+    } else loop = setTimeout(next, it.ms || LOOP_MS);
+  })();
+}
+
+/* ---- state -> DOM (no animation) ---- */
+let lastView = "";
+function apply(){
+  hover(null);
+  if (S.view !== lastView) { lastView = S.view; app.scrollTop = 0; }
+  app.dataset.view = S.view;
+  const f = S.active.size > 0, p = P[S.cur];
+  $("#clear").classList.toggle("show", f);
+  document.querySelectorAll("[data-f]").forEach(b => b.setAttribute("aria-pressed", S.active.has(b.dataset.f)));
+  P.forEach((q, i) => {
+    const cur = S.view === "project" && i === S.cur;
+    q.li.classList.toggle("cur", cur);
+    q.li.classList.toggle("on", cur || (S.view === "home" && f && matches(q)));
+    q.tagEl.textContent = q.tags.join("/");
+  });
+  thumbs.forEach(t => t.classList.toggle("gone", !shown(t)));
+  $("#storyBtn").toggleAttribute("aria-current", S.view === "story");
+  $("#storyBtn").tabIndex = S.view === "story" ? -1 : 0;
+  P.forEach((q, i) => q.li.firstChild.tabIndex = (S.view === "project" && i === S.cur) ? -1 : 0);
+  if (S.view === "story") $("#storyBtn").setAttribute("aria-current", "page");
+  const A = x => { const a = mk(x.u ? "a" : "span", "u ub", x.t); if (x.u) { a.href = x.u; a.target = "_blank"; a.rel = "noopener noreferrer"; } return a; };
+  $("#pDesc").textContent = p.desc;
+  const c = $("#pCollab"); c.hidden = !p.collab.length; c.replaceChildren(mk("span", "mute", "Collaborators: "));
+  p.collab.forEach((x, k) => { if (k) c.append(" + "); c.append(A(x)); });
+  const l = $("#pLink"); l.replaceChildren();
+  const NE = '<svg class="arr" viewBox="0 0 7 7" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M0.5 6.5 6.5 0.5M2.2 0.5H6.5V4.8"/></svg>';
+  p.links.forEach(x => { const d = mk("span", "lnk"); d.append(A(x)); d.insertAdjacentHTML("beforeend", NE); l.append(d); });
+  const cur = p.media[S.img];
+  [[$("#img"), $("#imgVid")], [$("#fullImg"), $("#fullVid")]].forEach(([e, v]) => {
+    e.style.background = bgOf(cur); e.setAttribute("aria-label", p.name + ", image " + (S.img + 1) + " of 6. Next image");
+    setVid(v, cur.video, v === $("#imgVid") ? S.view === "project" && $("#full").hidden : !$("#full").hidden);
+  });
+  $("#count").textContent = $("#fullCount").textContent = (S.img + 1) + "/6";
+  layoutHeader();
+}
+
+/* ---- the reference's thumbnail motion: staggered, ~1s, shrink out / slide together / grow in ---- */
+const DUR = 620, STEP = 15, EASE = "cubic-bezier(.7,0,.2,1)";
+function ghostOf(el, r){
+  const g = el.cloneNode(false); g.removeAttribute("id"); g.className = "ghost " + (el.className || "");
+  g.classList.remove("gone"); g.style.cssText = el.style.cssText;
+  Object.assign(g.style, { left:r.left+"px", top:r.top+"px", width:r.width+"px", height:r.height+"px", transformOrigin:"0 0" });
+  document.body.append(g); return g;
+}
+function animateTo(mutate){
+  const ids = new Set(), oldP = S.view === "project" ? S.cur : -1, oldView = S.view;
+  document.querySelectorAll(".ghost").forEach(g => g.remove());
+  thumbs.forEach(t => t.getAnimations().forEach(a => a.cancel()));
+  const stageEl = $("#stage"), stageBefore = oldView === "project" ? $("#img").getBoundingClientRect() : null;
+  const first = thumbs.map(t => ({ t, r: t.classList.contains("gone") ? null : t.getBoundingClientRect() }));
+  mutate();
+  if (reduce.matches) return;
+  const newP = S.view === "project" ? S.cur : -1;
+  const stageAfter = S.view === "project" ? $("#img").getBoundingClientRect() : null;
+  first.forEach(({ t, r }, i) => {
+    const gone = t.classList.contains("gone"), delay = i * STEP, tp = +t.dataset.p;
+    if (r && !gone) {                                   // stays: slide to its new slot
+      const r2 = t.getBoundingClientRect(), dx = r.left - r2.left, dy = r.top - r2.top;
+      if (Math.abs(dx) > 1 || Math.abs(dy) > 1)
+        t.animate([{ transform:`translate(${dx}px,${dy}px)` }, { transform:"none" }], { duration:DUR, delay, easing:EASE, fill:"backwards" });
+    } else if (r && gone) {                             // leaves: ghost shrinks away (or flies into the placeholder)
+      const g = ghostOf(t, r), done = () => g.remove();
+      if (tp === newP && stageAfter && !mobile.matches) {
+        const k = +t.dataset.j * 70;
+        g.animate([{ transform:"none", opacity:1 }, { transform:`translate(${stageAfter.left - r.left}px,${stageAfter.top - r.top}px) scale(${stageAfter.width / r.width},${stageAfter.height / r.height})`, opacity:1, offset:.75 }, { transform:`translate(${stageAfter.left - r.left}px,${stageAfter.top - r.top}px) scale(${stageAfter.width / r.width},${stageAfter.height / r.height})`, opacity:0 }],
+          { duration:DUR + 160, delay:k, easing:EASE, fill:"both" }).onfinish = done;
+      } else {
+        g.style.transformOrigin = "50% 50%";
+        g.animate([{ transform:"scale(1)", opacity:1 }, { transform:"scale(.12)", opacity:0 }], { duration:DUR * .8, delay, easing:EASE, fill:"both" }).onfinish = done;
+      }
+    } else if (!r && !gone) {                           // enters: grows in (or flies out of the placeholder)
+      const r2 = t.getBoundingClientRect();
+      if (tp === oldP && stageBefore && !mobile.matches) {
+        t.style.transformOrigin = "0 0";
+        t.animate([{ transform:`translate(${stageBefore.left - r2.left}px,${stageBefore.top - r2.top}px) scale(${stageBefore.width / r2.width},${stageBefore.height / r2.height})`, opacity:0 }, { opacity:1, offset:.25 }, { transform:"none", opacity:1 }],
+          { duration:DUR + 160, delay:+t.dataset.j * 40 + 120, easing:EASE, fill:"backwards" }).onfinish = () => { t.style.transformOrigin = ""; };
+      } else {
+        t.animate([{ transform:"scale(.12)", opacity:0 }, { transform:"scale(1)", opacity:1 }], { duration:DUR, delay:delay + 160, easing:EASE, fill:"backwards" });
+      }
+    }
+  });
+  if (stageAfter) stageEl.animate([{ opacity:0 }, { opacity:0, offset:.6 }, { opacity:1 }], { duration:DUR + 360, easing:"ease-out" });
+  if (stageBefore) { const g = ghostOf($("#img"), stageBefore); g.animate([{ opacity:1 }, { opacity:0 }], { duration:260, fill:"both" }).onfinish = () => g.remove(); }
+  document.querySelectorAll(".nav, .panel, .bio .back").forEach(e => e.animate([{ opacity:0 }, { opacity:1 }], { duration:360, easing:"ease-out" }));
+}
+
+/* ---- navigation ---- */
+let hashGuard = false;
+function setHash(h){ try { hashGuard = true; location.hash = h; setTimeout(() => hashGuard = false, 0); } catch (e) { hashGuard = false; } }
+function nav(view, i, j){
+  if (view === S.view && (view !== "project" || i === S.cur)) { if (view === "project" && j != null) { S.img = j; apply(); } return; }
+  animateTo(() => { S.view = view; if (i != null) S.cur = i; if (j != null) S.img = j; apply(); });
+  collapse();
+  setHash(view === "project" ? P[S.cur].id : view === "story" ? "story" : "");
+}
+function route(animated){
+  const h = location.hash.slice(1), i = P.findIndex(p => p.id === h);
+  const view = h === "story" ? "story" : i > -1 ? "project" : "home";
+  const go = () => { S.view = view; if (i > -1) { S.cur = i; S.img = 0; } apply(); };
+  animated ? animateTo(go) : go(); collapse();
+}
+addEventListener("hashchange", () => { if (!hashGuard) route(true); });
+/* Back (and the name link) return to a fresh landing page: filters cleared, panels closed, first image */
+function resetHome(){
+  animateTo(() => { S.view = "home"; S.active.clear(); S.img = 0; apply(); });
+  collapse(); setHash("");
+}
+$("#homeBtn").onclick = $("#back").onclick = resetHome;
+$("#storyBtn").onclick = () => nav("story");   // stays on Story when clicked again; ↖ Back returns home
+
+function toggleFilter(f){ animateTo(() => { S.active.has(f) ? S.active.delete(f) : S.active.add(f); apply(); }); }
+
+/* ---- panels: + turns into × ---- */
+function setPanel(head, body, open){ head.setAttribute("aria-expanded", open); body.classList.toggle("open", open); if (!open) body.scrollTop = 0; }
+function collapse(){ setPanel($("#projHead"), $("#projBody"), false); setPanel($("#storyHead"), $("#storyBody"), false); }
+document.querySelectorAll(".body").forEach(el => el.addEventListener("scroll", () => el.classList.toggle("scrolled", el.scrollTop > 2), { passive: true }));
+[["#projHead", "#projBody"], ["#storyHead", "#storyBody"]].forEach(([h, b]) =>
+  $(h).onclick = () => setPanel($(h), $(b), $(h).getAttribute("aria-expanded") !== "true"));
+
+/* ---- placeholder slideshow + full screen ---- */
+function step(d){ S.img = (S.img + d + 6) % 6; apply(); $("#img").animate([{ opacity:.35 }, { opacity:1 }], { duration:260 }); }
+$("#img").onclick = $("#fullImg").onclick = () => step(1);
+$("#fullBtn").onclick = () => { $("#full").hidden = false; apply(); $("#closeFull").focus(); };
+const closeFull = () => { if ($("#full").hidden) return; $("#full").hidden = true; apply(); };
+$("#closeFull").onclick = closeFull;
+addEventListener("keydown", e => {
+  if (e.key === "Escape") closeFull();
+  if (S.view === "project" && e.key === "ArrowRight") step(1);
+  if (S.view === "project" && e.key === "ArrowLeft") step(-1);
+});
+
+/* the 24-tile page is always the landing page, even if the link carries an old #hash */
+apply(); collapse();
+if (location.hash) setHash("");
+
+/* email: click opens your mail app, double-click copies the address */
+(() => {
+  const a = document.querySelector(".bio a.hl"); if (!a) return;
+  const addr = a.getAttribute("href").replace(/^mailto:/, ""), label = a.textContent; let t = null, back = null;
+  a.style.touchAction = "manipulation";
+  a.addEventListener("click", e => { e.preventDefault(); if (e.detail > 1) return; clearTimeout(t); t = setTimeout(() => { location.href = a.href; }, 280); });
+  a.addEventListener("dblclick", async e => {
+    e.preventDefault(); clearTimeout(t);
+    try { await navigator.clipboard.writeText(addr); }
+    catch (_) { const r = document.createRange(); r.selectNodeContents(a); const s = getSelection(); s.removeAllRanges(); s.addRange(r); try { document.execCommand("copy"); } catch (__) {} s.removeAllRanges(); }
+    a.textContent = "Copied"; clearTimeout(back); back = setTimeout(() => { a.textContent = label; }, 1200);
+  });
+})();
+</script>
+</body>
+</html>
