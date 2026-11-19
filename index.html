@@ -83,7 +83,7 @@ a.hl{text-decoration:none}
 .ghost{position:fixed;z-index:5;pointer-events:none}
 
 /* project placeholder */
-.stage{position:absolute;left:52.6%;top:var(--stage-top,calc(var(--vh)*35));width:var(--stage-w,min(calc(var(--vh)*80),calc(var(--vw)*50)));transform:translateX(-50%);text-align:center}
+.stage{position:absolute;left:50%;top:var(--stage-top,calc(var(--vh)*35));width:var(--stage-w,min(calc(var(--vh)*80),calc(var(--vw)*50)));transform:translateX(-50%);text-align:center}
 .frame{display:block;position:relative;overflow:hidden;width:100%;aspect-ratio:16/10;margin-bottom:12px}
 .vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .count{display:block}
@@ -99,10 +99,10 @@ a.hl{text-decoration:none}
 #app:not([data-view="home"]) .preview{display:none}
 
 /* full screen */
-#full{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.78);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center}
-#full .frame{width:min(86vw,140vh);margin:0;cursor:inherit}
-#full .x{position:absolute;top:calc(32px + env(safe-area-inset-top,0px));right:4vw}
-#full .count{position:static;margin-top:12px;text-align:center}
+#full{position:fixed;inset:0;z-index:20;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#full .frame{width:min(100vw,calc(100vh * 1.6));margin:0;cursor:inherit}
+#full .x{z-index:2;position:absolute;top:calc(32px + env(safe-area-inset-top,0px));right:4vw}
+#full .count{display:none}
 
 /* ===== phone / small screens: same design, reflowed to one column (as the reference does on iPhone) ===== */
 @media (max-width:900px){
@@ -159,7 +159,7 @@ a.hl{text-decoration:none}
 
   /* full screen: black, like the reference */
   #full{background:#000;flex-direction:column}
-  #full .frame{width:min(100%,140vh)}
+  #full .frame{width:min(100%,calc(100dvh * 1.6))}
   #full .x{top:calc(20px + env(safe-area-inset-top,0px));right:20px;padding:6px 0}
 }
 @media (max-width:380px){.works button,.filters button{white-space:normal}.filters{min-width:0}}
@@ -216,15 +216,15 @@ a.hl{text-decoration:none}
     </div>
   </section>
 
-  <section class="stage" id="stage"><button class="frame" id="img"><video class="vid" id="imgVid" muted loop playsinline hidden></video></button><span class="count" id="count"></span></section>
+  <section class="stage" id="stage"><button class="frame" id="img"><video class="vid" id="imgVid" muted playsinline hidden></video></button><span class="count" id="count"></span></section>
   <section class="strip" id="strip" aria-label="Work thumbnails"></section>
   <div class="preview" id="preview" aria-hidden="true"><video class="vid" id="pvVid" muted playsinline hidden></video></div>
   <p class="services">Services: Performance (Engaging) Creative/Content + Digital Strategy/Production/Events + Partnerships</p>
 </div>
 
 <div id="full" role="dialog" aria-modal="true" aria-label="Full screen" hidden>
-  <button class="x" id="closeFull">Close ×</button>
-  <button class="frame" id="fullImg"><video class="vid" id="fullVid" muted loop playsinline hidden></video></button>
+  <button class="x" id="closeFull">Close [&nbsp;×&nbsp;]</button>
+  <button class="frame" id="fullImg"><video class="vid" id="fullVid" muted playsinline hidden></video></button>
   <span class="count" id="fullCount"></span>
 </div>
 
@@ -314,8 +314,9 @@ function layoutHeader(){
   document.querySelectorAll(".bio p").forEach(p => { rng.selectNodeContents(p); [...rng.getClientRects()].forEach(r => { if (r.width > 1) right = Math.max(right, r.right / k); }); });
   /* project placeholder: top lines up with the email line, bottom stays where it was (85% of the height), 16:10, clear of the email */
   { const em0 = $(".bio a").getBoundingClientRect(), em = { top: em0.top / k, right: em0.right / k }, H = app.clientHeight, cx = app.clientWidth * .526;
-    const h = H * .85 - em.top, w = Math.min(h * 1.6, 2 * (cx - (em.right + 24)));
-    if (h > 160 && w > 200) { app.style.setProperty("--stage-top", em.top + "px"); app.style.setProperty("--stage-w", w + "px"); } }
+    const bk = S.view === "project" ? $("#back").getBoundingClientRect() : null, top = bk && bk.height ? bk.bottom / k : em.top;   // project page: placeholder starts at the bottom of the Back button
+    const h = H - 24 - top - 29, w = Math.min(h * 1.6, 2 * (cx - (em.right + 24)));   // same size as before; the stage itself is now centred in the window
+    if (h > 160 && w > 200) { app.style.setProperty("--stage-top", top + "px"); app.style.setProperty("--stage-w", w + "px"); } }
   if (S.view === "home") {
     const navL = $(".nav").getBoundingClientRect().left / k;
     const w = Math.round(($("#strip").clientWidth - 7 * 24) / 8 * .75 * 10) / 10;     // three-quarters of one thumbnail tile
@@ -343,6 +344,7 @@ function setVid(v, src, play){
 
 let loop = null;
 const LOOP_MS = 700;        // default time a photo stays in the hover preview
+const AUTO_MS = 2500;       // default time a photo stays on a project page / full screen before the next one (override per item with ms)
 const VIDEO_MAX_MS = 20000; // safety: a video that never ends or never loads moves on after this
 function hover(i, th){
   const pv = $("#preview"), vid = $("#pvVid");
@@ -398,7 +400,7 @@ function apply(){
     setVid(v, cur.video, v === $("#imgVid") ? S.view === "project" && $("#full").hidden : !$("#full").hidden);
   });
   $("#count").textContent = $("#fullCount").textContent = (S.img + 1) + "/6";
-  layoutHeader();
+  layoutHeader(); autoplay(); paintClose();
 }
 
 /* ---- the reference's thumbnail motion: staggered, ~1s, shrink out / slide together / grow in ---- */
@@ -485,6 +487,42 @@ document.querySelectorAll(".body").forEach(el => el.addEventListener("scroll", (
 [["#projHead", "#projBody"], ["#storyHead", "#storyBody"]].forEach(([h, b]) =>
   $(h).onclick = () => setPanel($(h), $(b), $(h).getAttribute("aria-expanded") !== "true"));
 
+/* project page + full screen: the six images advance on their own (photos for AUTO_MS, videos until they end); clicking or arrow keys still step by hand and restart the timer */
+let auto = null;
+function stopAuto(){ clearTimeout(auto); auto = null; [$("#imgVid"), $("#fullVid")].forEach(v => { v.onended = v.onerror = null; }); }
+function autoplay(){
+  stopAuto();
+  if (S.view !== "project" || reduce.matches || document.hidden) return;
+  const it = P[S.cur].media[S.img], v = $("#full").hidden ? $("#imgVid") : $("#fullVid"), next = () => step(1);
+  if (it.video) { v.onended = next; v.onerror = () => { auto = setTimeout(next, AUTO_MS); }; auto = setTimeout(next, it.ms || VIDEO_MAX_MS); }
+  else auto = setTimeout(next, it.ms || AUTO_MS);
+}
+document.addEventListener("visibilitychange", autoplay);
+/* full screen: the Close button turns black or white, whichever reads against what is behind it */
+const lumOf = (r, g, b) => (.2126 * r + .7152 * g + .0722 * b) / 255;
+async function closeLum(it){
+  const x = $("#closeFull").getBoundingClientRect(), f = $("#fullImg").getBoundingClientRect();
+  if (x.right < f.left || x.left > f.right || x.bottom < f.top || x.top > f.bottom) return 0;        // over the black bars
+  const v = $("#fullVid"), bg = bgOf(it), cw = Math.max(1, Math.round(f.width / 4)), ch = Math.max(1, Math.round(f.height / 4));
+  const cvs = document.createElement("canvas"); cvs.width = cw; cvs.height = ch; const c = cvs.getContext("2d", { willReadFrequently: true });
+  const rx = Math.max(0, (x.left - f.left) / 4), ry = Math.max(0, (x.top - f.top) / 4), rw = Math.max(1, Math.min(cw - rx, x.width / 4)), rh = Math.max(1, Math.min(ch - ry, x.height / 4));
+  const draw = (el, w, h) => { const sc = Math.max(cw / w, ch / h); c.drawImage(el, (cw - w * sc) / 2, (ch - h * sc) / 2, w * sc, h * sc); };
+  try {
+    if (it.video && !v.hidden && v.readyState >= 2 && v.videoWidth) draw(v, v.videoWidth, v.videoHeight);
+    else { const m = /url\(\s*["']?([^"')]+)["']?\s*\)/.exec(bg);
+      if (m) { const im = new Image(); im.src = m[1]; await im.decode(); draw(im, im.naturalWidth, im.naturalHeight); }
+      else { const cols = [...bg.matchAll(/#([0-9a-f]{3,6})\b|rgba?\(\s*(\d+)[ ,]+(\d+)[ ,]+(\d+)/gi)].map(k => k[1] ? (h => h.length === 3 ? [...h].map(d => parseInt(d + d, 16)) : [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)))(k[1]) : [+k[2], +k[3], +k[4]]);
+        if (!cols.length) return 1; const a = [0, 1, 2].map(i => cols.reduce((t, k) => t + k[i], 0) / cols.length); return lumOf(...a); } }
+    const d = c.getImageData(rx, ry, rw, rh).data; let t = 0, n = 0;
+    for (let i = 0; i < d.length; i += 4) { t += lumOf(d[i], d[i + 1], d[i + 2]); n++; } return n ? t / n : 0;
+  } catch (e) { return 0; }
+}
+let closeTok = 0;
+async function paintClose(){
+  if ($("#full").hidden) return; const tok = ++closeTok, l = await closeLum(P[S.cur].media[S.img]);
+  if (tok === closeTok) $("#closeFull").style.color = l > .55 ? "#000" : "#fff";
+}
+addEventListener("resize", paintClose);
 /* ---- placeholder slideshow + full screen ---- */
 function step(d){ S.img = (S.img + d + 6) % 6; apply(); $("#img").animate([{ opacity:.35 }, { opacity:1 }], { duration:260 }); }
 /* left half of the image goes back, right half goes forward */
@@ -493,8 +531,9 @@ function step(d){ S.img = (S.img + d + 6) % 6; apply(); $("#img").animate([{ opa
   el.onclick = e => step(side(e));
   el.onmousemove = e => { el.style.cursor = side(e) < 0 ? "w-resize" : "e-resize"; };
 });
-$("#fullBtn").onclick = () => { $("#full").hidden = false; apply(); $("#closeFull").focus(); };
-const closeFull = () => { if ($("#full").hidden) return; $("#full").hidden = true; apply(); };
+$("#fullBtn").onclick = () => { $("#full").hidden = false; apply(); $("#closeFull").focus(); try { const r = $("#full").requestFullscreen && $("#full").requestFullscreen(); r && r.catch && r.catch(() => {}); } catch (e) {} };
+const closeFull = () => { if ($("#full").hidden) return; $("#full").hidden = true; apply(); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {} };
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) closeFull(); });
 $("#closeFull").onclick = closeFull;
 addEventListener("keydown", e => {
   if (e.key === "Escape") closeFull();
