@@ -46,7 +46,7 @@ a{color:inherit}
 a.hl{text-decoration:none}
 /* after a click the hover underline is held back until the pointer leaves, so a deselected filter visibly loses its underline */
 .filters button.nohov:hover{text-decoration:none}
-.filters button.nohov[aria-pressed="true"]{text-decoration:underline}
+.filters button.nohov[aria-pressed="true"]{text-decoration:underline;text-decoration-color:var(--red);text-decoration-thickness:1px;text-underline-offset:2px}
 
 .photo{position:absolute;right:calc(var(--vw)*4);top:54px;width:121px;height:172px;background:var(--ph);opacity:0;pointer-events:none;transition:opacity .35s}
 .services{position:absolute;right:calc(var(--vw)*4);bottom:24px;white-space:nowrap;text-align:right;opacity:0;pointer-events:none;transition:opacity .35s}
