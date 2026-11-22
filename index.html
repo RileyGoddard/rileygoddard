@@ -238,7 +238,10 @@ a.hl{text-decoration:none}
    {video:"clip.mp4", poster:"…", tile:"clip-small.mp4"}            the home-page tile plays this small clip on repeat
    Tiles show the photo, or the video's poster. */
 const bgOf = m => typeof m === "string" ? m : (m.bg || m.poster || "#d3d3d3");
-const clip = (name, n, loop, ms) => ({ video:`media/${name}-${n}.mp4`, poster:`url(media/${name}-${n}.jpg) center/cover`, ...(loop ? { tile:`media/${name}-${n}-tile.mp4` } : {}), ...(ms ? { ms } : {}) });
+const R2 = "https://pub-868d1e02f43841ada63046f401fffbce.r2.dev";
+// Full-length clips not yet uploaded to R2 are served from the local media/ folder instead.
+const LOCAL_VIDEO = { "otherworldly-1": true };
+const clip = (name, n, loop, ms) => ({ video: LOCAL_VIDEO[`${name}-${n}`] ? `media/${name}-${n}.mp4` : `${R2}/${({foreshore:"OTF",townie:"T",names4ke:"N",otherworldly:"OT"})[name]}%20${n}.mp4`, poster:`url(media/${name}-${n}.jpg) center/cover`, ...(loop ? { tile:`media/${name}-${n}-tile.mp4` } : {}), ...(ms ? { ms } : {}) });
 const FILTERS = ["Research + Design", "Community", "Production", "Socials"];
 const P = [
  {id:"foreshore", name:"On the Foreshore", tags:["Socials","Community"],
