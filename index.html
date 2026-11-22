@@ -239,31 +239,30 @@ a.hl{text-decoration:none}
    Tiles show the photo, or the video's poster. */
 const bgOf = m => typeof m === "string" ? m : (m.bg || m.poster || "#d3d3d3");
 const R2 = "https://pub-868d1e02f43841ada63046f401fffbce.r2.dev";
-// Full-length clips not yet uploaded to R2 are served from the local media/ folder instead.
-const LOCAL_VIDEO = { "otherworldly-1": true };
-const clip = (name, n, loop, ms) => ({ video: LOCAL_VIDEO[`${name}-${n}`] ? `media/${name}-${n}.mp4` : `${R2}/${({foreshore:"OTF",townie:"T",names4ke:"N",otherworldly:"OT"})[name]}%20${n}.mp4`, poster:`url(media/${name}-${n}.jpg) center/cover`, ...(loop ? { tile:`media/${name}-${n}-tile.mp4` } : {}), ...(ms ? { ms } : {}) });
+const movie = (c, n) => { const u = `${R2}/${c}%20${n}.mp4`; return { video:u, tile:`media/${c}-${n}-tile.mp4` }; };   // full video from R2 on previews / project pages; small local clip loops on the home grid
+const photo = (c, n) => ({ bg:`url(${R2}/${c}%20${n}.jpg) center/cover`, ms:3000 });          // photo: shows for 3 seconds before the next item
 const FILTERS = ["Research + Design", "Community", "Production", "Socials"];
 const P = [
  {id:"foreshore", name:"On the Foreshore", tags:["Socials","Community"],
   desc:"Dennis Golding: On the Foreshore was a large-scale public art installation, delivered in partnership with the MCA. The project brought Indigenous cultural visual storytelling into the public realm. Riley led marketing communications through to launch, developing internal and external messaging, social content and documenting the public programme. The installation attracted 40,000+ visitors in eight-weeks and received an iMAGineE award nomination for it’s community engagement approach.",
   collab:[{t:"Bayside Council",u:"https://www.bayside.nsw.gov.au/your-council/latest-news/dennis-golding-foreshore-exhibition-success"},{t:"MCA",u:"https://www.mca.com.au/media/dennis-golding-on-the-foreshore/"}],
   links:[{t:"Dennis Golding: On the Foreshore",u:"https://www.mca.com.au/c3west/dennis-golding-on-the-foreshore/"}],
-  media:[clip("foreshore",1,1), clip("foreshore",2,1), clip("foreshore",3,1), clip("foreshore",4,1,3000)]},
+  media:[movie("OTF",1), movie("OTF",2), movie("OTF",3), photo("OTF",4)]},
  {id:"townie", name:"Townie", tags:["Research + Design","Community"],
   desc:"Townie is a MVP subscription-based platform developed to connect foodies with independent businesses through a clean, more personalised experience. Translating the concept, Riley led UX/UI design and creative direction across product architecture, user journeys, feature development, interactive design, onboarding and visual identity. The result was a product experience designed to simplify quality discovery, support local communities and make finding the right spot for more accessible.",
   collab:[],
   links:[{t:"Townie Prototype Experience", u:"https://drive.google.com/file/d/1ZfFt7FdgF-hL_eVv5NEoZofIqTCToEMr/view?usp=sharing"}],
-  media:[clip("townie",2,1), clip("townie",1,1), clip("townie",3,1,3000), clip("townie",4,1)]},
+  media:[movie("T",1), movie("T",2), photo("T",3), movie("T",4)]},
  {id:"names4ke", name:"Names4ke", tags:["Socials","Research + Design"],
   desc:"Names4ke is a body of work exploring homes of great design and artistic significance. Content zooms-in on architecture, interiors and socio-cultural histories, published via TikTok the account has reached tens of thousands in two-months. Riley shapes the editorial voice through original commentary, content curation and visual storytelling, creating a space for discovery and considered perspectives on the spaces we inhabit.",
   collab:[],
   links:[{t:"names4ke.online", u:"https://www.tiktok.com/@names4ke.online?_r=1&_t=ZS-9BLbIXdTDUr"}],
-  media:[clip("names4ke",1,1), clip("names4ke",2,1,3000), clip("names4ke",3,1), clip("names4ke",4,1)]},
+  media:[movie("N",1), photo("N",2), movie("N",3), movie("N",4)]},
  {id:"otherworldly", name:"The Otherworldly", tags:["Production"],
   desc:"Production for a sponsored editorial in Puss Puss Magazine - The Otherworldly - Issue 24. Riley translated the creative direction into a working production plan within a two-weeks turnaround, scouting locations, travel/schedule logistics, run sheets, budgets, post shoot deliverables and also features as ‘Teddy’. The project culminated into a digital and print cover story, 12-page editorial spread with social assets for the clients.",
   collab:[{t:"Nathaniel Dunwell",u:"https://nathanieldunwell.com/"},{t:"Chl’ita",u:"https://www.chlita.com/"}],
   links:[{t:"pusspussmagazine.com", u:"https://www.pusspussmagazine.com/product/issue-24/"}],
-  media:[clip("otherworldly",1,1), clip("otherworldly",2,0,3000), clip("otherworldly",3,1), clip("otherworldly",4,1)]}
+  media:[movie("TO",1), photo("TO",2), movie("TO",3), movie("TO",4)]}
 ];
 
 const $ = s => document.querySelector(s), app = $("#app");
@@ -353,7 +352,7 @@ function setVid(v, src, play){
 let loop = null;
 const LOOP_MS = 700;        // default time a photo stays in the hover preview
 const AUTO_MS = 2500;       // default time a photo stays on a project page / full screen before the next one (override per item with ms)
-const VIDEO_MAX_MS = 20000; // safety: a video that never ends or never loads moves on after this
+const VIDEO_MAX_MS = 90000; // safety: a video that never ends or never loads moves on after this
 function hover(i, th){
   const pv = $("#preview"), vid = $("#pvVid");
   clearTimeout(loop); loop = null; vid.onended = vid.onerror = null;
