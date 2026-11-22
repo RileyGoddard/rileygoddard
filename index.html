@@ -414,7 +414,7 @@ const DUR = 620, STEP = 15, EASE = "cubic-bezier(.7,0,.2,1)";
 function ghostOf(el, r){
   const g = el.cloneNode(false); g.removeAttribute("id"); g.className = "ghost " + (el.className || "");
   g.classList.remove("gone"); g.style.cssText = el.style.cssText;
-  Object.assign(g.style, { left:r.left+"px", top:r.top+"px", width:r.width+"px", height:r.height+"px", transformOrigin:"0 0" });
+  Object.assign(g.style, { position:"fixed", overflow:"hidden", willChange:"transform, opacity", left:r.left+"px", top:r.top+"px", width:r.width+"px", height:r.height+"px", transformOrigin:"0 0" });
   document.body.append(g); return g;
 }
 function animateTo(mutate){
@@ -422,9 +422,13 @@ function animateTo(mutate){
   document.querySelectorAll(".ghost").forEach(g => g.remove());
   thumbs.forEach(t => t.getAnimations().forEach(a => a.cancel()));
   const stageEl = $("#stage"), stageBefore = oldView === "project" ? $("#img").getBoundingClientRect() : null;
+  const imgBefore = S.img;
   const first = thumbs.map(t => ({ t, r: t.classList.contains("gone") ? null : t.getBoundingClientRect() }));
   mutate();
   if (reduce.matches) return;
+  /* keep the motion smooth: pause the looping tile videos while tiles fly, resume right after */
+  const tv = [...document.querySelectorAll(".thumb video")]; tv.forEach(v => v.pause());
+  clearTimeout(animateTo.t); animateTo.t = setTimeout(() => tv.forEach(v => v.play().catch(() => {})), DUR + 700);
   const newP = S.view === "project" ? S.cur : -1;
   const stageAfter = S.view === "project" ? $("#img").getBoundingClientRect() : null;
   first.forEach(({ t, r }, i) => {
@@ -435,8 +439,8 @@ function animateTo(mutate){
         t.animate([{ transform:`translate(${dx}px,${dy}px)` }, { transform:"none" }], { duration:DUR, delay, easing:EASE, fill:"backwards" });
     } else if (r && gone) {                             // leaves: ghost shrinks away (or flies into the placeholder)
       const g = ghostOf(t, r), done = () => g.remove();
-      if (tp === newP && stageAfter && !mobile.matches) {
-        const k = +t.dataset.j * 70;
+      if (tp === newP && stageAfter) {
+        const k = ((+t.dataset.j - S.img - 1 + 4) % 4) * 70;   // the tile you clicked lands last; the others arrive before it in order
         g.animate([{ transform:"none", opacity:1 }, { transform:`translate(${stageAfter.left - r.left}px,${stageAfter.top - r.top}px) scale(${stageAfter.width / r.width},${stageAfter.height / r.height})`, opacity:1, offset:.75 }, { transform:`translate(${stageAfter.left - r.left}px,${stageAfter.top - r.top}px) scale(${stageAfter.width / r.width},${stageAfter.height / r.height})`, opacity:0 }],
           { duration:DUR + 160, delay:k, easing:EASE, fill:"both" }).onfinish = done;
       } else {
@@ -445,10 +449,10 @@ function animateTo(mutate){
       }
     } else if (!r && !gone) {                           // enters: grows in (or flies out of the placeholder)
       const r2 = t.getBoundingClientRect();
-      if (tp === oldP && stageBefore && !mobile.matches) {
+      if (tp === oldP && stageBefore) {
         t.style.transformOrigin = "0 0";
         t.animate([{ transform:`translate(${stageBefore.left - r2.left}px,${stageBefore.top - r2.top}px) scale(${stageBefore.width / r2.width},${stageBefore.height / r2.height})`, opacity:0 }, { opacity:1, offset:.25 }, { transform:"none", opacity:1 }],
-          { duration:DUR + 160, delay:+t.dataset.j * 40 + 120, easing:EASE, fill:"backwards" }).onfinish = () => { t.style.transformOrigin = ""; };
+          { duration:DUR + 160, delay:((+t.dataset.j - imgBefore + 4) % 4) * 90 + 120, easing:EASE, fill:"backwards" }).onfinish = () => { t.style.transformOrigin = ""; };
       } else {
         t.animate([{ transform:"scale(.12)", opacity:0 }, { transform:"scale(1)", opacity:1 }], { duration:DUR, delay:delay + 160, easing:EASE, fill:"backwards" });
       }
