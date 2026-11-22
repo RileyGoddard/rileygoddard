@@ -73,10 +73,10 @@ a.hl{text-decoration:none}
 
 /* thumbnails: 8 columns, bottom-anchored like the reference */
 .strip{position:absolute;left:calc(var(--vw)*4);right:calc(var(--vw)*4);bottom:24px;display:grid;grid-template-columns:repeat(8,1fr);gap:24px}
-.thumb{display:block;aspect-ratio:3/2;background-size:cover}
+.thumb{display:block;aspect-ratio:16/9;background-size:cover}
 .thumb.gone{display:none}
 /* hover preview: fixed, centred above the strip, same as the reference */
-.preview{position:absolute;left:50%;top:calc(var(--vh)*30);width:calc(var(--vw)*23.2);aspect-ratio:3/2;transform:translateX(-50%);pointer-events:none;opacity:0;visibility:hidden;background-size:cover}
+.preview{position:absolute;left:50%;top:calc(var(--vh)*30);width:calc(var(--vw)*23.2);aspect-ratio:16/9;transform:translateX(-50%);pointer-events:none;opacity:0;visibility:hidden;background-size:cover}
 .preview.show{opacity:1;visibility:visible}
 .lnk{display:flex;align-items:center;gap:5px;width:max-content;max-width:100%}
 .lnk+.lnk{margin-top:17px}
@@ -84,7 +84,7 @@ a.hl{text-decoration:none}
 
 /* project placeholder */
 .stage{position:absolute;left:50%;top:var(--stage-top,calc(var(--vh)*35));width:var(--stage-w,min(calc(var(--vh)*80),calc(var(--vw)*50)));transform:translateX(-50%);text-align:center}
-.frame{display:block;position:relative;overflow:hidden;width:100%;aspect-ratio:16/10;margin-bottom:12px}
+.frame{display:block;position:relative;overflow:hidden;width:100%;aspect-ratio:16/9;margin-bottom:12px}
 .vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .count{display:block}
 
@@ -100,8 +100,8 @@ a.hl{text-decoration:none}
 
 /* full screen */
 #full{position:fixed;inset:0;z-index:20;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center}
-#full .frame{width:100vw;height:100vh;aspect-ratio:auto;margin:0;cursor:inherit}
-#full .x{z-index:2;position:absolute;top:calc(32px + env(safe-area-inset-top,0px));right:4vw}
+#full .frame{width:min(100vw,calc(100vh * 16 / 9));height:auto;aspect-ratio:16/9;margin:0;cursor:inherit}
+#full .x{z-index:2;color:#fff;position:absolute;top:max(16px,calc((100vh - 100vw * 9 / 16) / 4));transform:translateY(-50%);right:4vw;padding:0}
 #full .count{display:none}
 
 /* ===== phone / small screens: same design, reflowed to one column (as the reference does on iPhone) ===== */
@@ -159,8 +159,8 @@ a.hl{text-decoration:none}
 
   /* full screen: black, like the reference */
   #full{background:#000;flex-direction:column}
-  #full .frame{width:100%;height:100dvh}
-  #full .x{top:calc(20px + env(safe-area-inset-top,0px));right:20px;padding:6px 0}
+  #full .frame{width:min(100%,calc(100dvh * 16 / 9))}
+  #full .x{top:max(24px,calc((100dvh - 100vw * 9 / 16) / 4));right:20px;padding:0}
 }
 @media (max-width:380px){.works button,.filters button{white-space:normal}.filters{min-width:0}}
 @media (prefers-reduced-motion:reduce){.ico,.body,.photo,.services{transition:none}}
@@ -229,36 +229,38 @@ a.hl{text-decoration:none}
 </div>
 
 <script>
-/* ===== Your content. 4 projects x 6 images = 24 thumbnails. =====
+/* ===== Your content. 4 projects x 4 images = 16 thumbnails. =====
    Each `media` entry can be:
      "url(my-image.jpg) center/cover"                         a photo (shows for LOOP_MS in the hover preview)
      {bg:"url(my-image.jpg) center/cover", ms:1500}           a photo that stays longer in the hover preview
      {video:"clip.mp4", poster:"url(still.jpg) center/cover"} a video: the preview waits for it to finish
      {video:"clip.mp4", poster:"…", ms:4000}                  a video cut off after 4 seconds
+   {video:"clip.mp4", poster:"…", tile:"clip-small.mp4"}            the home-page tile plays this small clip on repeat
    Tiles show the photo, or the video's poster. */
 const bgOf = m => typeof m === "string" ? m : (m.bg || m.poster || "#d3d3d3");
+const clip = (name, n, loop, ms) => ({ video:`media/${name}-${n}.mp4`, poster:`url(media/${name}-${n}.jpg) center/cover`, ...(loop ? { tile:`media/${name}-${n}-tile.mp4` } : {}), ...(ms ? { ms } : {}) });
 const FILTERS = ["Research + Design", "Community", "Production", "Socials"];
 const P = [
  {id:"foreshore", name:"On the Foreshore", tags:["Socials","Community"],
   desc:"Dennis Golding: On the Foreshore was a large-scale public art installation, delivered in partnership with the MCA. The project brought Indigenous cultural visual storytelling into the public realm. Riley led marketing communications through to launch, developing internal and external messaging, social content and documenting the public programme. The installation attracted 40,000+ visitors in eight-weeks and received an iMAGineE award nomination for it’s community engagement approach.",
   collab:[{t:"Bayside Council",u:"https://www.bayside.nsw.gov.au/your-council/latest-news/dennis-golding-foreshore-exhibition-success"},{t:"MCA",u:"https://www.mca.com.au/media/dennis-golding-on-the-foreshore/"}],
   links:[{t:"Dennis Golding: On the Foreshore",u:"https://www.mca.com.au/c3west/dennis-golding-on-the-foreshore/"}],
-  media:["linear-gradient(135deg,#d9822b,#4f7a4a)","#7aa35a","linear-gradient(120deg,#c9a23a,#e07b39,#3f8a73)","#e8e6df","linear-gradient(160deg,#3a7bd5,#bfe0ff)","linear-gradient(135deg,#9fb36a,#d96b2b)"]},
+  media:[clip("foreshore",1,1), clip("foreshore",2,1), clip("foreshore",3,1), clip("foreshore",4,1,3000)]},
  {id:"townie", name:"Townie", tags:["Research + Design","Community"],
   desc:"Townie is a MVP subscription-based platform developed to connect foodies with independent businesses through a clean, more personalised experience. Translating the concept, Riley led UX/UI design and creative direction across product architecture, user journeys, feature development, interactive design, onboarding and visual identity. The result was a product experience designed to simplify quality discovery, support local communities and make finding the right spot for more accessible.",
   collab:[],
-  links:[{t:"Townie Prototype Experience", u:""}],   // TODO: paste the prototype URL into u:""
-  media:["#2b47c8","#f2f0ea","linear-gradient(135deg,#2b47c8,#8aa0ff)","#d3d3d3","#222","linear-gradient(135deg,#555,#c4c4c4)"]},
+  links:[{t:"Townie Prototype Experience", u:"https://drive.google.com/file/d/1ZfFt7FdgF-hL_eVv5NEoZofIqTCToEMr/view?usp=sharing"}],
+  media:[clip("townie",2,1), clip("townie",1,1), clip("townie",3,1,3000), clip("townie",4,1)]},
  {id:"names4ke", name:"Names4ke", tags:["Socials","Research + Design"],
-  desc:"Names4ke is a body of work exploring homes of great design and artistic significance. Content zooms-in on architecture, interiors and socio-cultural histories, published via TikTok the account has reach Xk+, with an engagement rate of X%. Riley shapes the editorial voice through original commentary, content curation and visual storytelling, creating a space for discovery and considered perspectives on the spaces we inhabit.",
+  desc:"Names4ke is a body of work exploring homes of great design and artistic significance. Content zooms-in on architecture, interiors and socio-cultural histories, published via TikTok the account has reached tens of thousands in two-months. Riley shapes the editorial voice through original commentary, content curation and visual storytelling, creating a space for discovery and considered perspectives on the spaces we inhabit.",
   collab:[],
   links:[{t:"names4ke.online", u:"https://www.tiktok.com/@names4ke.online?_r=1&_t=ZS-9BLbIXdTDUr"}],
-  media:["#7dff7d","#3dff3d","#d3d3d3","#a8a3a3","#7dff7d","#d3d3d3"]},
+  media:[clip("names4ke",1,1), clip("names4ke",2,1,3000), clip("names4ke",3,1), clip("names4ke",4,1)]},
  {id:"otherworldly", name:"The Otherworldly", tags:["Production"],
   desc:"Production for a sponsored editorial in Puss Puss Magazine - The Otherworldly - Issue 24. Riley translated the creative direction into a working production plan within a two-weeks turnaround, scouting locations, travel/schedule logistics, run sheets, budgets, post shoot deliverables and also features as ‘Teddy’. The project culminated into a digital and print cover story, 12-page editorial spread with social assets for the clients.",
   collab:[{t:"Nathaniel Dunwell",u:"https://nathanieldunwell.com/"},{t:"Chl’ita",u:"https://www.chlita.com/"}],
   links:[{t:"pusspussmagazine.com", u:"https://www.pusspussmagazine.com/product/issue-24/"}],
-  media:["#c9f5ec","#d3d3d3","linear-gradient(135deg,#222,#777)","#c9f5ec","#a8a3a3","#e8e6df"]}
+  media:[clip("otherworldly",1,1), clip("otherworldly",2,0,3000), clip("otherworldly",3,1), clip("otherworldly",4,1)]}
 ];
 
 const $ = s => document.querySelector(s), app = $("#app");
@@ -273,7 +275,8 @@ P.forEach((p, i) => {
   const t = mk("span", "tags"); li.append(b, t); p.li = li; p.tagEl = t; $("#works").append(li);
   p.media.forEach((bg, j) => {
     const th = mk("button", "thumb"); th.style.background = bgOf(bg); th.dataset.p = i; th.dataset.j = j;
-    th.setAttribute("aria-label", p.name + ", image " + (j + 1) + " of 6");
+    if (bg.tile) { const tv = mk("video", "vid"); tv.src = bg.tile; tv.muted = tv.loop = tv.autoplay = tv.playsInline = true; tv.setAttribute("muted", ""); tv.preload = "auto"; tv.style.pointerEvents = "none"; th.style.position = "relative"; th.style.overflow = "hidden"; th.append(tv); tv.play().catch(() => {}); }
+    th.setAttribute("aria-label", p.name + ", image " + (j + 1) + " of 4");
     th.onclick = () => nav("project", i, j);
     th.onmouseenter = th.onfocus = () => hover(i, th);
     th.onmouseleave = th.onblur = () => hover(null);
@@ -315,7 +318,7 @@ function layoutHeader(){
   /* project placeholder: top lines up with the email line, bottom stays where it was (85% of the height), 16:10, clear of the email */
   { const em0 = $(".bio a").getBoundingClientRect(), em = { top: em0.top / k, right: em0.right / k }, H = app.clientHeight, cx = app.clientWidth * .526;
     const bk = S.view === "project" ? $("#back").getBoundingClientRect() : null, top = bk && bk.height ? bk.bottom / k : em.top;   // project page: placeholder starts at the bottom of the Back button
-    const h = H - 24 - top - 29, w = Math.min(h * 1.6, 2 * (cx - (em.right + 24)));   // same size as before; the stage itself is now centred in the window
+    const h = H - 24 - top - 29, w = Math.min(h * 16 / 9, app.clientWidth * .92);   // 16:9, centred in the window
     if (h > 160 && w > 200) { app.style.setProperty("--stage-top", top + "px"); app.style.setProperty("--stage-w", w + "px"); } }
   if (S.view === "home") {
     const navL = $(".nav").getBoundingClientRect().left / k;
@@ -323,9 +326,11 @@ function layoutHeader(){
     const lg = $("#logo"); lg.style.width = w + "px"; lg.style.left = ((right + navL) / 2 - w / 2) + "px";
     lg.style.top = (32 - 12) + "px";                                                  // sits 12px above the first line of text
     // hover preview: top lines up with the email line, bottom sits 24px above the full 3-row tile grid (same as the gap between tiles)
-    const tileH = (($("#strip").clientWidth - 7 * 24) / 8) * 2 / 3, gridTop = app.clientHeight - 24 - (3 * tileH + 2 * 24);
-    const top = $(".bio a").getBoundingClientRect().top / k, h = gridTop - 24 - top, pv = $("#preview");
-    if (h > 120) Object.assign(pv.style, { top: top + "px", height: h + "px", width: h * 1.5 + "px" });
+    const tileH = (($("#strip").clientWidth - 7 * 24) / 8) * 9 / 16, gridTop = app.clientHeight - 24 - (2 * tileH + 24);
+    const eml = $(".bio a").getBoundingClientRect(), pv = $("#preview"), emBottom = eml.bottom / k;
+    // hover preview keeps its size (38% of the page width) and is centred between the email line and the top row of tiles
+    const h = Math.min(app.clientWidth * .38 * 9 / 16, gridTop - emBottom - 24);
+    if (h > 100) Object.assign(pv.style, { top: ((emBottom + gridTop) / 2 - h / 2) + "px", height: h + "px", width: h * 16 / 9 + "px" });
   }
 }
 addEventListener("resize", layoutHeader);
@@ -396,11 +401,11 @@ function apply(){
   p.links.forEach(x => { const d = mk("span", "lnk"); d.append(A(x)); d.insertAdjacentHTML("beforeend", NE); l.append(d); });
   const cur = p.media[S.img];
   [[$("#img"), $("#imgVid")], [$("#fullImg"), $("#fullVid")]].forEach(([e, v]) => {
-    e.style.background = bgOf(cur); e.setAttribute("aria-label", p.name + ", image " + (S.img + 1) + " of 6. Next image");
+    e.style.background = bgOf(cur); e.setAttribute("aria-label", p.name + ", image " + (S.img + 1) + " of 4. Next image");
     setVid(v, cur.video, v === $("#imgVid") ? S.view === "project" && $("#full").hidden : !$("#full").hidden);
   });
-  $("#count").textContent = $("#fullCount").textContent = (S.img + 1) + "/6";
-  layoutHeader(); autoplay(); paintClose();
+  $("#count").textContent = $("#fullCount").textContent = (S.img + 1) + "/4";
+  layoutHeader(); autoplay();
 }
 
 /* ---- the reference's thumbnail motion: staggered, ~1s, shrink out / slide together / grow in ---- */
@@ -498,33 +503,8 @@ function autoplay(){
   else auto = setTimeout(next, it.ms || AUTO_MS);
 }
 document.addEventListener("visibilitychange", autoplay);
-/* full screen: the Close button turns black or white, whichever reads against what is behind it */
-const lumOf = (r, g, b) => (.2126 * r + .7152 * g + .0722 * b) / 255;
-async function closeLum(it){
-  const x = $("#closeFull").getBoundingClientRect(), f = $("#fullImg").getBoundingClientRect();
-  if (x.right < f.left || x.left > f.right || x.bottom < f.top || x.top > f.bottom) return 0;        // over the black bars
-  const v = $("#fullVid"), bg = bgOf(it), cw = Math.max(1, Math.round(f.width / 4)), ch = Math.max(1, Math.round(f.height / 4));
-  const cvs = document.createElement("canvas"); cvs.width = cw; cvs.height = ch; const c = cvs.getContext("2d", { willReadFrequently: true });
-  const rx = Math.max(0, (x.left - f.left) / 4), ry = Math.max(0, (x.top - f.top) / 4), rw = Math.max(1, Math.min(cw - rx, x.width / 4)), rh = Math.max(1, Math.min(ch - ry, x.height / 4));
-  const draw = (el, w, h) => { const sc = Math.max(cw / w, ch / h); c.drawImage(el, (cw - w * sc) / 2, (ch - h * sc) / 2, w * sc, h * sc); };
-  try {
-    if (it.video && !v.hidden && v.readyState >= 2 && v.videoWidth) draw(v, v.videoWidth, v.videoHeight);
-    else { const m = /url\(\s*["']?([^"')]+)["']?\s*\)/.exec(bg);
-      if (m) { const im = new Image(); im.src = m[1]; await im.decode(); draw(im, im.naturalWidth, im.naturalHeight); }
-      else { const cols = [...bg.matchAll(/#([0-9a-f]{3,6})\b|rgba?\(\s*(\d+)[ ,]+(\d+)[ ,]+(\d+)/gi)].map(k => k[1] ? (h => h.length === 3 ? [...h].map(d => parseInt(d + d, 16)) : [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)))(k[1]) : [+k[2], +k[3], +k[4]]);
-        if (!cols.length) return 1; const a = [0, 1, 2].map(i => cols.reduce((t, k) => t + k[i], 0) / cols.length); return lumOf(...a); } }
-    const d = c.getImageData(rx, ry, rw, rh).data; let t = 0, n = 0;
-    for (let i = 0; i < d.length; i += 4) { t += lumOf(d[i], d[i + 1], d[i + 2]); n++; } return n ? t / n : 0;
-  } catch (e) { return 0; }
-}
-let closeTok = 0;
-async function paintClose(){
-  if ($("#full").hidden) return; const tok = ++closeTok, l = await closeLum(P[S.cur].media[S.img]);
-  if (tok === closeTok) $("#closeFull").style.color = l > .55 ? "#000" : "#fff";
-}
-addEventListener("resize", paintClose);
 /* ---- placeholder slideshow + full screen ---- */
-function step(d){ S.img = (S.img + d + 6) % 6; apply(); $("#img").animate([{ opacity:.35 }, { opacity:1 }], { duration:260 }); }
+function step(d){ const n = P[S.cur].media.length; S.img = (S.img + d + n) % n; apply(); $("#img").animate([{ opacity:.35 }, { opacity:1 }], { duration:260 }); }
 /* left half of the image goes back, right half goes forward */
 [$("#img"), $("#fullImg")].forEach(el => {
   const side = e => (e.detail === 0 ? 1 : (e.clientX - el.getBoundingClientRect().left) < el.getBoundingClientRect().width / 2 ? -1 : 1);
@@ -558,6 +538,11 @@ if (location.hash) setHash("");
     a.textContent = "Copied"; clearTimeout(back); back = setTimeout(() => { a.textContent = label; }, 1200);
   });
 })();
+
+/* phones (e.g. iOS Low Power Mode) can refuse autoplay: nudge the looping tiles to play on the first touch or when the tab returns */
+const kick = () => document.querySelectorAll(".thumb video").forEach(v => { if (v.paused) v.play().catch(() => {}); });
+addEventListener("pointerdown", kick, { once: true, passive: true });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) kick(); });
 </script>
 </body>
 </html>
