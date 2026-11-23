@@ -48,7 +48,7 @@ a.hl{text-decoration:none}
 .filters button.nohov:hover{text-decoration:none}
 .filters button.nohov[aria-pressed="true"]{text-decoration:underline;text-decoration-color:var(--red);text-decoration-thickness:var(--ut,1px);text-underline-offset:2px}
 
-.photo{position:absolute;right:calc(var(--vw)*4);top:54px;width:121px;height:172px;background:var(--ph);opacity:0;pointer-events:none;transition:opacity .35s}
+.photo{position:absolute;right:calc(var(--vw)*4);top:54px;width:121px;height:172px;background:url(media/portrait.jpg) center 22%/cover no-repeat;opacity:0;pointer-events:none;transition:opacity .35s}
 .services{position:absolute;right:calc(var(--vw)*4);bottom:24px;white-space:nowrap;text-align:right;opacity:0;pointer-events:none;transition:opacity .35s}
 
 /* collapsible info panels */
@@ -147,7 +147,7 @@ a.hl{text-decoration:none}
   .photo{width:80px;height:114px;margin:0 0 15px auto;order:0}
   #app[data-view="story"] .photo{display:block}
   #app:not([data-view="story"]) .photo,#app:not([data-view="story"]) .services{display:none}
-  .services{white-space:normal;text-align:left;margin-top:24px;padding-bottom:4px}
+  .services{white-space:normal;text-align:right;margin-top:24px;padding-bottom:4px}
 
   /* project image + counter */
   .stage{width:100%;margin-top:15px;text-align:center}
@@ -187,7 +187,7 @@ a.hl{text-decoration:none}
     <button class="story-btn" id="storyBtn">Story</button>
   </nav>
 
-  <div class="photo" role="img" aria-label="Portrait placeholder"></div>
+  <div class="photo" role="img" aria-label="Portrait of Riley Goddard"></div>
 
   <section class="panel project" id="pProject">
     <button class="head" id="projHead" aria-expanded="false" aria-controls="projBody">About Project<span class="ico"></span></button>
