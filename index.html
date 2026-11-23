@@ -239,29 +239,29 @@ a.hl{text-decoration:none}
    Tiles show the photo, or the video's poster. */
 const bgOf = m => typeof m === "string" ? m : (m.bg || m.poster || "#d3d3d3");
 const R2 = "https://pub-868d1e02f43841ada63046f401fffbce.r2.dev";   // full-quality videos for project pages + full screen
-const movie = (c, n) => ({ video:`${R2}/${c}%20${n}.mp4`, tile:`media/${c}-${n}-tile.mp4`, poster:`url(media/${c}-${n}.jpg) center/cover` });   // full clip on previews / project pages; small clip loops on the home grid
+const movie = (c, n, ms) => ({ ...(ms ? { ms } : {}), video:`${R2}/${c}%20${n}${c === "N" && n === 4 ? ".2" : ""}.mp4`, tile:`media/${c}-${n}-tile.mp4`, poster:`url(media/${c}-${n}.jpg) center/cover` });   // full clip on previews / project pages; small clip loops on the home grid
 const FILTERS = ["Research + Design", "Community", "Production", "Socials"];
 const P = [
  {id:"foreshore", name:"On the Foreshore", tags:["Socials","Community"],
   desc:"Dennis Golding: On the Foreshore was a large-scale public art installation, delivered in partnership with the MCA. The project brought Indigenous cultural visual storytelling into the public realm. Riley led marketing communications through to launch, developing internal and external messaging, social content and documenting the public programme. The installation attracted 40,000+ visitors in eight-weeks and received an iMAGineE award nomination for it’s community engagement approach.",
   collab:[{t:"Bayside Council",u:"https://www.bayside.nsw.gov.au/your-council/latest-news/dennis-golding-foreshore-exhibition-success"},{t:"MCA",u:"https://www.mca.com.au/media/dennis-golding-on-the-foreshore/"}],
   links:[{t:"Dennis Golding: On the Foreshore",u:"https://www.mca.com.au/c3west/dennis-golding-on-the-foreshore/"}],
-  media:[movie("OTF",1), movie("OTF",2), movie("OTF",3), movie("OTF",4)]},
+  media:[movie("OTF",1), movie("OTF",2), movie("OTF",3), movie("OTF",4,3000)]},
  {id:"townie", name:"Townie", tags:["Research + Design","Community"],
   desc:"Townie is a MVP subscription-based platform developed to connect foodies with independent businesses through a clean, more personalised experience. Translating the concept, Riley led UX/UI design and creative direction across product architecture, user journeys, feature development, interactive design, onboarding and visual identity. The result was a product experience designed to simplify quality discovery, support local communities and make finding the right spot for more accessible.",
   collab:[],
   links:[{t:"Townie Prototype Experience", u:"https://drive.google.com/file/d/1ZfFt7FdgF-hL_eVv5NEoZofIqTCToEMr/view?usp=sharing"}],
-  media:[movie("T",1), movie("T",2), movie("T",3), movie("T",4)]},
+  media:[movie("T",1), movie("T",2), movie("T",3,3000), movie("T",4)]},
  {id:"names4ke", name:"Names4ke", tags:["Socials","Research + Design"],
   desc:"Names4ke is a body of work exploring homes of great design and artistic significance. Content zooms-in on architecture, interiors and socio-cultural histories, published via TikTok the account has reached tens of thousands in two-months. Riley shapes the editorial voice through original commentary, content curation and visual storytelling, creating a space for discovery and considered perspectives on the spaces we inhabit.",
   collab:[],
   links:[{t:"names4ke.online", u:"https://www.tiktok.com/@names4ke.online?_r=1&_t=ZS-9BLbIXdTDUr"}],
-  media:[movie("N",1), movie("N",2), movie("N",3), movie("N",4)]},
+  media:[movie("N",1), movie("N",2,3000), movie("N",3), movie("N",4)]},
  {id:"otherworldly", name:"The Otherworldly", tags:["Production"],
   desc:"Production for a sponsored editorial in Puss Puss Magazine - The Otherworldly - Issue 24. Riley translated the creative direction into a working production plan within a two-weeks turnaround, scouting locations, travel/schedule logistics, run sheets, budgets, post shoot deliverables and also features as ‘Teddy’. The project culminated into a digital and print cover story, 12-page editorial spread with social assets for the clients.",
   collab:[{t:"Nathaniel Dunwell",u:"https://nathanieldunwell.com/"},{t:"Chl’ita",u:"https://www.chlita.com/"}],
   links:[{t:"pusspussmagazine.com", u:"https://www.pusspussmagazine.com/product/issue-24/"}],
-  media:[movie("TOW",1), movie("TOW",2), movie("TOW",3), movie("TOW",4)]}
+  media:[movie("TOW",1), movie("TOW",2,3000), movie("TOW",3), movie("TOW",4)]}
 ];
 
 const $ = s => document.querySelector(s), app = $("#app");
