@@ -49,6 +49,7 @@ a.hl{text-decoration:none}
 .filters button.nohov[aria-pressed="true"]{text-decoration:underline;text-decoration-color:var(--red);text-decoration-thickness:var(--ut,1px);text-underline-offset:2px}
 
 .photo{position:absolute;right:calc(var(--vw)*4);top:54px;width:121px;height:172px;background:url(media/portrait.jpg) center 22%/cover no-repeat;opacity:0;pointer-events:none;transition:opacity .35s}
+.contact{display:none}
 .services{position:absolute;right:calc(var(--vw)*4);bottom:24px;white-space:nowrap;text-align:right;opacity:0;pointer-events:none;transition:opacity .35s}
 
 /* collapsible info panels */
@@ -148,6 +149,7 @@ a.hl{text-decoration:none}
   #app[data-view="story"] .photo{display:block}
   #app:not([data-view="story"]) .photo,#app:not([data-view="story"]) .services{display:none}
   .services{white-space:normal;text-align:right;margin-top:24px;padding-bottom:4px}
+  #app[data-view="story"] .contact{display:block;text-align:right;margin-top:15px;padding-bottom:4px}
 
   /* project image + counter */
   .stage{width:100%;margin-top:15px;text-align:center}
@@ -221,6 +223,7 @@ a.hl{text-decoration:none}
   <section class="strip" id="strip" aria-label="Work thumbnails"></section>
   <div class="preview" id="preview" aria-hidden="true"><video class="vid" id="pvVid" muted playsinline hidden></video></div>
   <p class="services">Services: Performance (Engaging) Creative/Content + Digital Strategy/Production/Events + Partnerships</p>
+  <p class="contact">Contact: <a class="u ub" href="mailto:rileyjasongoddard@gmail.com">rileyjasongoddard@gmail.com</a></p>
 </div>
 
 <div id="full" role="dialog" aria-modal="true" aria-label="Full screen" hidden>
