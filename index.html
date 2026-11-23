@@ -68,6 +68,7 @@ a.hl{text-decoration:none}
 .body.open{opacity:1;visibility:visible}
 /* once scrolled, text also fades out under the header instead of being cut off mid-line */
 .body.scrolled{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14px,#000 calc(100% - var(--fade,56px)),transparent);mask-image:linear-gradient(to bottom,transparent 0,#000 14px,#000 calc(100% - var(--fade,56px)),transparent)}
+.body.fits{-webkit-mask-image:none;mask-image:none;padding-bottom:0}   /* text fully fits: no fade over the last line */
 .body p,.blk{margin-bottom:17px}
 .rule{border:0;border-top:1px solid var(--red);margin:0 0 17px}
 
@@ -295,6 +296,18 @@ const shown = t => S.view === "home" && matches(P[+t.dataset.p]);
 
 /* header layout: logo sits midway between the bio text and the nav; panels take the bio's first-line width */
 const mobile = matchMedia("(max-width:900px)");
+/* About Project: if the text only just overflows, grow the panel (shrinking the gap above the video) so every line, including the last link, is fully visible */
+function fitPanels(){
+  document.querySelectorAll(".panel.project").forEach(pn => {
+    const b = pn.querySelector(".body"); if (!b) return;
+    pn.style.height = ""; b.classList.remove("fits");
+    if (mobile.matches) return;
+    const last = b.lastElementChild, mb = last ? parseFloat(getComputedStyle(last).marginBottom) || 0 : 0;
+    const need = b.scrollHeight - (parseFloat(getComputedStyle(b).paddingBottom) || 0) - mb, extra = need - b.clientHeight;
+    if (extra <= 0) { b.classList.add("fits"); return; }
+    if (extra <= 22) { pn.style.height = (pn.offsetHeight + extra + 1) + "px"; b.classList.add("fits"); }
+  });
+}
 function layoutHeader(){
   const app = $("#app");
   if (!mobile.matches) {   /* the 1440 x 900 design scales with the window: layout box = window / k, then scaled by k */
@@ -324,6 +337,7 @@ function layoutHeader(){
     const bk = S.view === "project" ? $("#back").getBoundingClientRect() : null, top = bk && bk.height ? bk.bottom / k : em.top;   // project page: placeholder starts at the bottom of the Back button
     const h = H - 24 - top - 29, w = Math.min(h * 16 / 9, app.clientWidth * .92);   // 16:9, centred in the window
     if (h > 160 && w > 200) { app.style.setProperty("--stage-top", top + "px"); app.style.setProperty("--stage-w", w + "px"); } }
+  fitPanels();
   if (S.view === "home") {
     const navL = $(".nav").getBoundingClientRect().left / k;
     const w = Math.round(($("#strip").clientWidth - 7 * 24) / 8 * .75 * 10) / 10;     // three-quarters of one thumbnail tile
